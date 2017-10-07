@@ -1,0 +1,23 @@
+{
+    "name": "giver-trail",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon /server/server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Abdalla1990/giver-trail-backend.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Abdalla1990/giver-trail-backend/issues"
+    },
+    "homepage": "https://github.com/Abdalla1990/giver-trail-backend#readme",
+    "dependencies": {
+        "nodemon": "^1.12.1"
+    }
+}
