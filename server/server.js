@@ -4,6 +4,7 @@ const { User } = require('./models/users');
 var bodyParser = require('body-parser');
 var app = express();
 var _ = require('lodash');
+const { ObjectID } = require('mongodb');
 
 const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
@@ -11,6 +12,8 @@ app.use(bodyParser.json());
 
 // ========== User Routes =================
 
+
+//register a user 
 app.post('/users/create-user', (req, res) => {
 
     var theuser = new User({
@@ -29,6 +32,23 @@ app.post('/users/create-user', (req, res) => {
     })
 });
 
+
+// get the user's info 
+
+app.get('/users/:id', (req, res) => {
+
+
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        res.status(400).send('Id field is empty or Id is not correct');
+    }
+    User.findById(id).then((doc) => {
+        res.status(200).send({ doc });
+    }).catch((err) => {
+        res.status(400).send(err);
+    });
+
+});
 app.listen(3000, () => {
     console.log(`started up at port :3000`)
 });
