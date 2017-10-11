@@ -18,6 +18,13 @@
     },
     "homepage": "https://github.com/Abdalla1990/giver-trail-backend#readme",
     "dependencies": {
-        "nodemon": "^1.12.1"
+        "body-parser": "^1.18.2",
+        "express": "^4.16.2",
+        "jsonwebtoken": "^8.1.0",
+        "lodash": "^4.17.4",
+        "mongodb": "^2.2.31",
+        "mongoose": "^4.12.1",
+        "nodemon": "^1.12.1",
+        "validator": "^9.0.0"
     }
 }
