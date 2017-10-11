@@ -2,18 +2,9 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const bcryptjs = require('bcryptjs');
 var UserSchema = new mongoose.Schema({
-    // - User ID.  			- /users/
-    // - User First Name		- /users/id/first-name
-    // - User Last Name		- /users/id/last-name
-    // - User Picture(s)		- /users/id/profile-picture
-    // - User Description		- /users/description
-    // - Total Points Earned		..
-    // - Total Points Donated       ..  
-    // - Points have right now      ..      
-    // - Current chosen Cause       ..
-    // - Current chosen Trail       ..
-
+    //var User = mongoose.model('User', {
     email: {
         type: String,
         required: true,
@@ -24,6 +15,7 @@ var UserSchema = new mongoose.Schema({
             validator: validator.isEmail,
             message: '{VALUE} is not a correct email'
         }
+
     },
     password: {
         type: String,
@@ -41,42 +33,42 @@ var UserSchema = new mongoose.Schema({
         required: false,
         minlength: 5,
         trim: true,
-    },
-    pictures: {},
-    description: {
-        type: String,
-        required: false,
-        minlength: 5,
-        trim: true,
-    },
-    pointesEarned: {
-        type: number,
-        minlength: 1
-    },
-    pointsDonated: {
-        type: number,
-        minlength: 1
-    },
-    currentCause: {
-        type: String,
-        required: flase,
-        minlength: 1,
-        trim: true,
-    },
-    currentTrail: {
+    }
+    // pictures: {},
+    // description: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 5,
+    //     trim: true,
+    // },
+    // pointesEarned: {
+    //     type: Number,
+    //     minlength: 1
+    // },
+    // pointsDonated: {
+    //     type: Number,
+    //     minlength: 1
+    // },
+    // currentCause: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 1,
+    //     trim: true,
+    // },
+    // currentTrail: {
 
-        trail: {
-            lat: {
+    //     trail: {
+    //         lat: {
 
-            },
-            lon: {
+    //         },
+    //         lon: {
 
-            }
-        },
+    //         }
+    //     },
 
-        required: false,
+    //     required: false,
 
-    },
+    // },
     // tokens: [{
     //     access: {
     //         type: String,
@@ -96,7 +88,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id']);
+    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName']);
 };
 
 
@@ -106,17 +98,18 @@ UserSchema.methods.toJSON = function() {
 
 // };
 
-UserSchema.pre('save', function(next) {
-    var user = this;
-    if (user.isModified('password')) {
-        bcryptjs.genSalt(10, (err, salt) => {
+// UserSchema.pre('save', function(next) {
+//     var user = this;
+//     if (user.isModified('password')) {
+//         bcryptjs.genSalt(10, (err, salt) => {
 
-            bcryptjs.hash(user.password, salt, (err, hash) => {
-                user.password = hash;
-                next();
-            });
-        });
-    } else { next(); }
+//             bcryptjs.hash(user.password, salt, (err, hash) => {
+//                 user.password = hash;
+//                 next();
+//             });
+//         });
+//     } else { next(); }
 
-});
+// });
 var User = mongoose.model('User', UserSchema);
+module.exports = { User };
