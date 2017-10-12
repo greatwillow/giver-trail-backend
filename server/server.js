@@ -16,13 +16,7 @@ app.use(bodyParser.json());
 //register a user 
 app.post('/users/create-user', (req, res) => {
 
-    var theuser = new User({
-
-        email: req.body.email,
-        password: req.body.password,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName
-    });
+    var theuser = new User(req.body);
     console.log(theuser);
     theuser.save().then((theuser) => {
         res.status(200).send(theuser);
