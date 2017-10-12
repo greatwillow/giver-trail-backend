@@ -22,7 +22,7 @@ app.post('/users/create-user', (req, res) => {
         res.status(200).send(theuser);
         console.log(JSON.stringify(theuser));
     }).catch((err) => {
-        res.status(400).send(err);
+        res.status(400).send(` hello greg your code is throwing an error : ${err}`);
     })
 });
 
