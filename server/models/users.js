@@ -22,53 +22,53 @@ var UserSchema = new mongoose.Schema({
         required: true,
         minlength: 6
     },
-    firstName: {
-        type: String,
-        required: false,
-        minlength: 5,
-        trim: true,
-    },
-    lastName: {
-        type: String,
-        required: false,
-        minlength: 5,
-        trim: true,
-    },
-    pictures: {},
-    description: {
-        type: String,
-        required: false,
-        minlength: 5,
-        trim: true,
-    },
-    pointesEarned: {
-        type: Number,
-        minlength: 1
-    },
-    pointsDonated: {
-        type: Number,
-        minlength: 1
-    },
-    currentCause: {
-        type: String,
-        required: false,
-        minlength: 1,
-        trim: true,
-    },
-    currentTrail: {
+    // firstName: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 5,
+    //     trim: true,
+    // },
+    // lastName: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 5,
+    //     trim: true,
+    // },
+    // pictures: {},
+    // description: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 5,
+    //     trim: true,
+    // },
+    // pointesEarned: {
+    //     type: Number,
+    //     minlength: 1
+    // },
+    // pointsDonated: {
+    //     type: Number,
+    //     minlength: 1
+    // },
+    // currentCause: {
+    //     type: String,
+    //     required: false,
+    //     minlength: 1,
+    //     trim: true,
+    // },
+    // currentTrail: {
 
-        trail: {
-            lat: {
+    //     trail: {
+    //         lat: {
 
-            },
-            lon: {
+    //         },
+    //         lon: {
 
-            }
-        },
+    //         }
+    //     },
 
-        required: false,
+    //     required: false,
 
-    },
+    // },
     // tokens: [{
     //     access: {
     //         type: String,
