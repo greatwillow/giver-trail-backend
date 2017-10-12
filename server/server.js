@@ -43,6 +43,14 @@ app.get('/users/:id', (req, res) => {
     });
 
 });
+app.get('/users', (req, res) => {
+
+    User.find().then((Ulist) => {
+        res.send(Ulist);
+    }).catch((e) => {
+        res.send(e);
+    });
+});
 app.listen(port, () => {
     console.log(`started up at port :${port}`)
 });
