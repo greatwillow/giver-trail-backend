@@ -49,6 +49,6 @@ app.get('/users/:id', (req, res) => {
     });
 
 });
-app.listen(3000, () => {
-    console.log(`started up at port :3000`)
+app.listen(port, () => {
+    console.log(`started up at port :${port}`)
 });
