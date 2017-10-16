@@ -22,63 +22,68 @@ var UserSchema = new mongoose.Schema({
         required: true,
         minlength: 6
     },
-    // firstName: {
-    //     type: String,
-    //     required: false,
-    //     minlength: 5,
-    //     trim: true,
-    // },
-    // lastName: {
-    //     type: String,
-    //     required: false,
-    //     minlength: 5,
-    //     trim: true,
-    // },
-    // pictures: {},
-    // description: {
-    //     type: String,
-    //     required: false,
-    //     minlength: 5,
-    //     trim: true,
-    // },
-    // pointesEarned: {
-    //     type: Number,
-    //     minlength: 1
-    // },
-    // pointsDonated: {
-    //     type: Number,
-    //     minlength: 1
-    // },
-    // currentCause: {
-    //     type: String,
-    //     required: false,
-    //     minlength: 1,
-    //     trim: true,
-    // },
-    // currentTrail: {
+    firstName: {
+        type: String,
+        required: false,
+        minlength: 5,
+        trim: true,
+    },
+    lastName: {
+        type: String,
+        required: false,
+        minlength: 5,
+        trim: true,
+    },
+    pictures: {},
+    description: {
+        type: String,
+        required: false,
+        minlength: 5,
+        trim: true,
+        default: 'this is a description'
+    },
+    pointsEarned: {
+        type: Number,
+        minlength: 1,
+        default: 0
 
-    //     trail: {
-    //         lat: {
+    },
+    pointsDonated: {
+        type: Number,
+        minlength: 1,
+        default: 0
+    },
+    currentCause: {
+        type: String,
+        required: false,
+        minlength: 1,
+        trim: true,
+        default: "none"
+    },
+    currentTrail: {
 
-    //         },
-    //         lon: {
+        trail: {
+            lat: {
 
-    //         }
-    //     },
+            },
+            lon: {
 
-    //     required: false,
+            }
+        },
 
-    // },
-    // tokens: [{
-    //     access: {
-    //         type: String,
-    //         required: true
-    //     },
-    //     token: {
-    //         type: String,
-    //         required: true
-    //     }
-    // }]
+        required: false,
+
+    },
+    tokens: [{
+        access: {
+            type: String,
+            required: true
+        },
+        token: {
+            type: String,
+            required: true
+        }
+    }]
 
 
 
@@ -88,28 +93,80 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'pointesEarned', 'pointsDonated', 'currentCause']);
+    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause']);
 };
 
 
-// UserSchema.methods.generateAuthToken = function() {
-//     var user = this;
-//     var process = auth;
+UserSchema.methods.generateAuthToken = function() {
+    var user = this;
+    var access = 'auth';
+    var token = jwt.sign({ _id: user._id.toHexString(), access }, 'secret').toString();
+    user.tokens.push({ access, token });
+    return user.save().then((user) => {
+        return token;
+    });
 
-// };
+};
 
-// UserSchema.pre('save', function(next) {
-//     var user = this;
-//     if (user.isModified('password')) {
-//         bcryptjs.genSalt(10, (err, salt) => {
 
-//             bcryptjs.hash(user.password, salt, (err, hash) => {
-//                 user.password = hash;
-//                 next();
-//             });
-//         });
-//     } else { next(); }
+UserSchema.methods.removeToken = function(token) {
+    var user = this;
+    return user.update({
+        $pull: {
+            tokens: { token }
+        }
+    });
+};
 
-// });
+
+UserSchema.statics.findByToken = function(token) {
+    var User = this;
+    var decoded;
+    try {
+        decoded = jwt.verify(token, 'secret');
+    } catch (e) {
+        return Promise.reject('invalid token sent ');
+    }
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    });
+};
+
+
+UserSchema.pre('save', function(next) {
+    var user = this;
+    if (user.isModified('password')) {
+        bcryptjs.genSalt(10, (err, salt) => {
+
+            bcryptjs.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();
+            });
+        });
+    } else { next(); }
+
+});
+
+UserSchema.statics.findByCredentials = function(email, password) {
+    var user = this;
+    return user.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject('user is not available!');
+        } else {
+            return new Promise((resolve, reject) => {
+                bcryptjs.compare(password, user.password, (err, res) => {
+                    if (res) {
+                        resolve(user);
+                    } else {
+                        reject('Entered password is invalid', err);
+                    }
+                });
+            });
+        }
+    });
+};
+
 var User = mongoose.model('User', UserSchema);
 module.exports = { User };
