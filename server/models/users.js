@@ -74,6 +74,10 @@ var UserSchema = new mongoose.Schema({
         required: false,
 
     },
+    address: {
+        type: String,
+        required: false
+    },
     tokens: [{
         access: {
             type: String,
@@ -93,7 +97,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause']);
+    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address']);
 };
 
 

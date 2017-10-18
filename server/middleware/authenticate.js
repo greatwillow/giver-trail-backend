@@ -8,9 +8,9 @@ var authenticate = (req, res, next) => {
             return Promise.reject();
         }
         req.user = user;
-        console.log(user);
+
         req.token = token;
-        console.log(token);
+
         next();
     }).catch((err) => {
         res.status(401).send();

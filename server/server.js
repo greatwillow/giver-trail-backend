@@ -6,7 +6,8 @@ var app = express();
 var _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { authenticate } = require('./middleware/authenticate');
-
+const { geocode } = require('./middleware/geocode');
+const axios = require('axios');
 const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
@@ -37,19 +38,41 @@ app.post('/users/login', (req, res) => {
 
 app.post('/users/create-user', (req, res) => {
     console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause']);
-    var user = new User(body);
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address']);
+    var address = _.pick(req.body, ['city', 'country', 'postalCode']);
+    var fullAddress = '';
 
-    user.save().then(() => { // this call back with a promise for the authentication function 
-        // function defined in the User Modle 
+    var city = address.city
+    var country = address.country;
+    var postalCode = address.postalCode;
+    var encodedAddress = encodeURIComponent(city + ' ' + country + ' ' + postalCode);
 
-        return user.generateAuthToken();
+    var url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`;
+    axios.get(url).then((response) => {
+        if (response.data.status === 'ZERO_RESULTS') { throw new Error('Unable to find that address. ') }
+        fullAddress = response.data.results[0].formatted_address;
+        body.address = fullAddress;
 
-    }).then((token) => {
-        res.header('x-auth', token).send(user);
+        var user = new User(body);
+
+        user.save().then(() => { // this call back with a promise for the authentication function 
+            // function defined in the User Modle 
+
+            return user.generateAuthToken();
+
+        }).then((token) => {
+            res.header('x-auth', token).send(user);
+        }).catch((err) => {
+            res.status(400).send(err);
+        })
     }).catch((err) => {
-        res.status(400).send(err);
+        return res.status(400).send(err.message);
     })
+
+
+
+
+
 
 
 });
@@ -91,23 +114,51 @@ app.put('/users/update-profile/', authenticate, (req, res) => {
 
 
     var email = req.user.email;
-    var body = _.pick(req.body, ['description', 'firstName', 'lastName', 'pictures', 'pointsEarned', 'pointsDonated']);
+    var body = _.pick(req.body, ['description', 'firstName', 'lastName', 'pictures', 'pointsEarned', 'pointsDonated', 'address']);
+
+
+    var address = _.pick(req.body, ['city', 'country', 'postalCode']);
+
+
 
     User.findOne({ email }).then((user) => {
         if (!user) { res.status(400).send('some fields cannot be empty!'); }
 
-        user.description = req.body.description || user.description;
-        user.firstName = req.body.firstName || user.firstName;
-        user.lastName = req.body.lastName || user.lastName;
-        user.pointsEarned = req.body.pointsEarned || user.pointsEarned;
-        user.pointsDonated = req.body.pointsDonated || user.pointsDonated;
-        user.save((err, newuser) => {
-            if (err) { throw new Error(err); }
-            res.status(200).send(newuser);
+
+        var city = address.city || ' ';
+        var country = address.country || 'canada ';
+        var postalCode = address.postalCode || ' ';
+
+
+        geocode(city, country, postalCode).then((newuser) => {
+            if (!newuser) { user.address = newuser } else {
+                user.address = newuser.data.results[0].formatted_address;
+                user.description = req.body.description || user.description;
+                user.firstName = req.body.firstName || user.firstName;
+                user.lastName = req.body.lastName || user.lastName;
+                user.pointsEarned = req.body.pointsEarned || user.pointsEarned;
+                user.pointsDonated = req.body.pointsDonated || user.pointsDonated;
+
+
+            }
+
+
+
+            user.save((err, newuser) => {
+                if (err) { throw new Error(err); }
+                res.status(200).send(newuser);
+            });
+        }).catch((err) => {
+            return res.status(400).send(err);
         });
+
     }).catch((err) => {
-        res.status(400).send(err);
+
+        res.status(400).send(err)
     });
+
+
+
 });
 
 // logout 
@@ -123,6 +174,25 @@ app.delete('/users/logout', authenticate, (req, res) => {
 
 });
 
+app.post('/api/google', (req, res) => {
+    var city = req.body.city
+    var country = req.body.country;
+    var postalCode = req.body.postalCode;
+    var encodedAddress = encodeURIComponent(city + ' ' + country + ' ' + postalCode);
+    console.log(encodedAddress)
+    var url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`;
+    axios.get(url).then((response) => {
+        if (response.data.status === 'ZERO_RESULTS') { throw new Error('Unable to find that address. ') }
+        res.status(200).send(response.data.results[0].formatted_address);
+
+    }).catch((err) => {
+        res.status(400).send(err.message);
+    })
+
+
+
+
+});
 
 
 
