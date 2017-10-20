@@ -3,6 +3,7 @@ const validator = require('validator');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs');
+const { geocode } = require('../middleware/geocode');
 var UserSchema = new mongoose.Schema({
     //var User = mongoose.model('User', {
     email: {
@@ -33,6 +34,13 @@ var UserSchema = new mongoose.Schema({
         required: false,
         minlength: 5,
         trim: true,
+    },
+    age: {
+
+        type: Number,
+        required: true,
+        trim: true,
+        default: 1
     },
     pictures: {},
     description: {
@@ -75,8 +83,30 @@ var UserSchema = new mongoose.Schema({
 
     },
     address: {
-        type: String,
-        required: false
+        city: {
+            name: String,
+            type: String,
+            required: false,
+            default: 'montreal'
+        },
+        country: {
+            name: String,
+            type: String,
+            required: false,
+            default: 'canada'
+        },
+        proviance: {
+            name: String,
+            type: String,
+            required: false,
+            default: ' '
+        },
+        address: {
+            name: String,
+            type: String,
+            required: false,
+            default: ' '
+        }
     },
     tokens: [{
         access: {
@@ -97,7 +127,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address']);
+    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'proviance', 'age']);
 };
 
 
@@ -142,12 +172,25 @@ UserSchema.statics.findByToken = function(token) {
 UserSchema.pre('save', function(next) {
     var user = this;
     if (user.isModified('password')) {
+
+        // hashing password process
         bcryptjs.genSalt(10, (err, salt) => {
 
             bcryptjs.hash(user.password, salt, (err, hash) => {
                 user.password = hash;
                 next();
             });
+            // // generating the address
+
+            // geocode(user.address.city, user.address.country, user.address.postalCode).then((newUser) => {
+
+            //     user.address.address = newUser.data.results[0].formatted_address;
+            //     console.log(`address in users : ${user.address.address}`)
+            //     next();
+            // }).catch((err) => {
+            //     user.address.address = ' ';
+            //     next();
+            // });
         });
     } else { next(); }
 

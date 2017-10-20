@@ -6,7 +6,7 @@ var app = express();
 var _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { authenticate } = require('./middleware/authenticate');
-const { geocode } = require('./middleware/geocode');
+
 const axios = require('axios');
 const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
@@ -38,42 +38,40 @@ app.post('/users/login', (req, res) => {
 
 app.post('/users/create-user', (req, res) => {
     console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address']);
-    var address = _.pick(req.body, ['city', 'country', 'postalCode']);
-    var fullAddress = '';
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'proviance', 'age']);
+    var body1 = {
+        email: body.email,
+        password: body.password,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        description: body.description,
+        pointsEarned: body.pointsEarned,
+        pointsDonated: body.pointsDonated,
+        currentCause: body.currentCause,
+        address: {
+            city: body.city,
+            country: body.country,
+            proviance: body.proviance,
+            address: body.address
+        },
+        age: body.age
+    }
 
-    var city = address.city
-    var country = address.country;
-    var postalCode = address.postalCode;
-    var encodedAddress = encodeURIComponent(city + ' ' + country + ' ' + postalCode);
+    console.log(body)
+    console.log(body1)
+    var user = new User(body1);
 
-    var url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`;
-    axios.get(url).then((response) => {
-        if (response.data.status === 'ZERO_RESULTS') { throw new Error('Unable to find that address. ') }
-        fullAddress = response.data.results[0].formatted_address;
-        body.address = fullAddress;
 
-        var user = new User(body);
+    user.save().then(() => { // this call back with a promise for the authentication function 
+        // function defined in the User Modle 
 
-        user.save().then(() => { // this call back with a promise for the authentication function 
-            // function defined in the User Modle 
+        return user.generateAuthToken();
 
-            return user.generateAuthToken();
-
-        }).then((token) => {
-            res.header('x-auth', token).send(user);
-        }).catch((err) => {
-            res.status(400).send(err);
-        })
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
     }).catch((err) => {
-        return res.status(400).send(err.message);
-    })
-
-
-
-
-
-
+        res.status(400).send(err);
+    });
 
 });
 
@@ -111,55 +109,56 @@ app.get('/user/profile', authenticate, (req, res) => {
 });
 // update user's profile 
 app.put('/users/update-profile/', authenticate, (req, res) => {
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'postalCode', 'age']);
+    var body1 = {
+        email: body.email,
+        password: body.password,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        description: body.description,
+        pointsEarned: body.pointsEarned,
+        pointsDonated: body.pointsDonated,
+        currentCause: body.currentCause,
+        address: {
+            city: body.city,
+            country: body.country,
+            proviance: body.proviance,
+            address: body.address
+        },
+        age: body.age
+    }
 
 
-    var email = req.user.email;
-    var body = _.pick(req.body, ['description', 'firstName', 'lastName', 'pictures', 'pointsEarned', 'pointsDonated', 'address']);
-
-
-    var address = _.pick(req.body, ['city', 'country', 'postalCode']);
-
-
-
+    email = req.user.email;
     User.findOne({ email }).then((user) => {
-        if (!user) { res.status(400).send('some fields cannot be empty!'); }
+        user.password = body1.password || user.password;
+        user.description = body1.description || user.description;
+        user.firstName = body1.firstName || user.firstName;
+        user.lastName = body1.lastName || user.lastName;
+        user.pointsEarned = body1.pointsEarned || user.pointsEarned;
+        user.pointsDonated = body1.pointsDonated || user.pointsDonated;
+        user.currentCause = body1.currentCause || user.currentCause;
+        user.address.city = body1.address.city || user.address.city;
+        user.address.country = body1.address.country || user.address.country;
+        user.address.proviance = body1.address.proviance || user.address.proviance;
+        user.address.address = body1.address.address || user.address.address;
+        user.age = body1.age || user.age;
+        return user;
+    }).then((user) => {
+        console.log('###############', user.email)
+        console.log('###############', user.address.address);
+        user.save().then((userchanges) => {
+            res.status(200).send(userchanges);
 
-
-        var city = address.city || ' ';
-        var country = address.country || 'canada ';
-        var postalCode = address.postalCode || ' ';
-
-
-        geocode(city, country, postalCode).then((newuser) => {
-            if (!newuser) { user.address = newuser } else {
-                user.address = newuser.data.results[0].formatted_address;
-                user.description = req.body.description || user.description;
-                user.firstName = req.body.firstName || user.firstName;
-                user.lastName = req.body.lastName || user.lastName;
-                user.pointsEarned = req.body.pointsEarned || user.pointsEarned;
-                user.pointsDonated = req.body.pointsDonated || user.pointsDonated;
-
-
-            }
-
-
-
-            user.save((err, newuser) => {
-                if (err) { throw new Error(err); }
-                res.status(200).send(newuser);
-            });
-        }).catch((err) => {
-            return res.status(400).send(err);
-        });
-
-    }).catch((err) => {
-
-        res.status(400).send(err)
+        }).catch((err) => { res.status(400).send(err) });
     });
 
 
-
 });
+
+
+
+
 
 // logout 
 
@@ -201,3 +200,51 @@ app.post('/api/google', (req, res) => {
 app.listen(port, () => {
     console.log(`started up at port :${port}`)
 });
+
+
+
+
+
+
+
+
+// var email = req.user.email;
+// var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'postalCode']);
+// var body1 = {
+//     email: body.email,
+//     password: body.password,
+//     firstName: body.firstName,
+//     lastName: body.lastName,
+//     description: body.description,
+//     pointsEarned: body.pointsEarned,
+//     pointsDonated: body.pointsDonated,
+//     currentCause: body.currentCause,
+//     address: {
+//         city: body.city,
+//         country: body.country,
+//         postalCode: body.postalCode,
+//         address: body.address
+//     }
+// }
+// User.findOne({ email }).then((user) => {
+//     if (!user) { res.status(400).send('some fields cannot be empty!'); }
+
+//     user.description = body1.description || user.description;
+//     user.firstName = body1.firstName || user.firstName;
+//     user.lastName = body1.lastName || user.lastName;
+//     user.pointsEarned = body1.pointsEarned || user.pointsEarned;
+//     user.pointsDonated = body1.pointsDonated || user.pointsDonated;
+//     user.address.city = body1.address.city || user.address.city;
+//     user.address.country = body1.address.country || user.address.country;
+//     user.address.postalCode = body1.address.postalCode || user.address.postalCode;
+//     console.log(`address in server : ${user.address.address}`)
+//     user.save().then((newuser) => {
+
+//         console.log(`address in save : ${user.address.address}`)
+//         res.status(200).send(newuser);
+//     }).catch((err) => {
+//         return res.status(400).send(err);
+//     });
+// }).catch((err) => {
+//     return res.status(400).send(err);
+// });
