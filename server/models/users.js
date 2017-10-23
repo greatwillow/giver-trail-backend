@@ -95,7 +95,7 @@ var UserSchema = new mongoose.Schema({
             required: false,
             default: 'canada'
         },
-        proviance: {
+        province: {
             name: String,
             type: String,
             required: false,
@@ -127,7 +127,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'proviance', 'age']);
+    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
 };
 
 

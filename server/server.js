@@ -38,7 +38,7 @@ app.post('/users/login', (req, res) => {
 
 app.post('/users/create-user', (req, res) => {
     console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'proviance', 'age']);
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
     var body1 = {
         email: body.email,
         password: body.password,
@@ -51,7 +51,7 @@ app.post('/users/create-user', (req, res) => {
         address: {
             city: body.city,
             country: body.country,
-            proviance: body.proviance,
+            province: body.province,
             address: body.address
         },
         age: body.age
@@ -109,7 +109,7 @@ app.get('/user/profile', authenticate, (req, res) => {
 });
 // update user's profile 
 app.put('/users/update-profile/', authenticate, (req, res) => {
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'postalCode', 'age']);
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
     var body1 = {
         email: body.email,
         password: body.password,
@@ -122,7 +122,7 @@ app.put('/users/update-profile/', authenticate, (req, res) => {
         address: {
             city: body.city,
             country: body.country,
-            proviance: body.proviance,
+            province: body.province,
             address: body.address
         },
         age: body.age
@@ -140,7 +140,7 @@ app.put('/users/update-profile/', authenticate, (req, res) => {
         user.currentCause = body1.currentCause || user.currentCause;
         user.address.city = body1.address.city || user.address.city;
         user.address.country = body1.address.country || user.address.country;
-        user.address.proviance = body1.address.proviance || user.address.proviance;
+        user.address.province = body1.address.province || user.address.province;
         user.address.address = body1.address.address || user.address.address;
         user.age = body1.age || user.age;
         return user;
