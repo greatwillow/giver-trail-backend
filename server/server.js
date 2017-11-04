@@ -6,7 +6,7 @@ var app = express();
 var _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { authenticate } = require('./middleware/authenticate');
-
+const user_routes = require('./router/user_routes');
 const axios = require('axios');
 const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
@@ -15,191 +15,85 @@ app.use(bodyParser.json());
 // ========== User Routes =================
 
 
-app.post('/users/login', (req, res) => {
-    console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password']);
-    console.log(req.body.email);
-    console.log(req.body.password);
-
-
-    User.findByCredentials(body.email, body.password).then((User) => {
-
-        return User.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(User);
-        });
-
-
-    }).catch((err) => {
-        res.status(400).send(err)
-    });
-
-});
-
-
-app.post('/users/create-user', (req, res) => {
-    console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
-    var body1 = {
-        email: body.email,
-        password: body.password,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        description: body.description,
-        pointsEarned: body.pointsEarned,
-        pointsDonated: body.pointsDonated,
-        currentCause: body.currentCause,
-        address: {
-            city: body.city,
-            country: body.country,
-            province: body.province,
-            address: body.address
-        },
-        age: body.age
-    }
-
-    console.log(body)
-    console.log(body1)
-    var user = new User(body1);
-
-
-    user.save().then(() => { // this call back with a promise for the authentication function 
-        // function defined in the User Modle 
-
-        return user.generateAuthToken();
-
-    }).then((token) => {
-        res.header('x-auth', token).send(user);
-    }).catch((err) => {
-        res.status(400).send(err);
-    });
-
-});
-
-
-
+app.post('/users/login', user_routes.log_in);
+app.post('/users/create-user', user_routes.create_user);
 // get the user's info , for admin purposes 
-
-app.get('/users/:id', (req, res) => {
-
-
-    var id = req.params.id;
-    if (!ObjectID.isValid(id)) {
-        res.status(400).send('Id field is empty or Id is not correct');
-    }
-    User.findById(id).then((doc) => {
-        res.status(200).send({ doc });
-    }).catch((err) => {
-        res.status(400).send(err);
-    });
-
-});
+app.get('/users/:id', user_routes.get_user);
 //display all users
-app.get('/users', (req, res) => {
-
-    User.find().then((Ulist) => {
-        res.send(Ulist);
-    }).catch((e) => {
-        res.send(e);
-    });
-});
+app.get('/users', user_routes.display_users);
 // displays all necesary fields for user's profile
-app.get('/user/profile', authenticate, (req, res) => {
-    console.log('inside the function');
-    res.send(req.user);
-});
+app.get('/user/profile', authenticate, user_routes.user_profile);
 // update user's profile 
-app.put('/users/update-profile/', authenticate, (req, res) => {
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
-    var body1 = {
-        email: body.email,
-        password: body.password,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        description: body.description,
-        pointsEarned: body.pointsEarned,
-        pointsDonated: body.pointsDonated,
-        currentCause: body.currentCause,
-        address: {
-            city: body.city,
-            country: body.country,
-            province: body.province,
-            address: body.address
-        },
-        age: body.age
-    }
+app.put('/users/update-profile/', authenticate, user_routes.update_user);
 
-
-    email = req.user.email;
-    User.findOne({ email }).then((user) => {
-        user.password = body1.password || user.password;
-        user.description = body1.description || user.description;
-        user.firstName = body1.firstName || user.firstName;
-        user.lastName = body1.lastName || user.lastName;
-        user.pointsEarned = body1.pointsEarned || user.pointsEarned;
-        user.pointsDonated = body1.pointsDonated || user.pointsDonated;
-        user.currentCause = body1.currentCause || user.currentCause;
-        user.address.city = body1.address.city || user.address.city;
-        user.address.country = body1.address.country || user.address.country;
-        user.address.province = body1.address.province || user.address.province;
-        user.address.address = body1.address.address || user.address.address;
-        user.age = body1.age || user.age;
-        return user;
-    }).then((user) => {
-        console.log('###############', user.email)
-        console.log('###############', user.address.address);
-        user.save().then((userchanges) => {
-            res.status(200).send(userchanges);
-
-        }).catch((err) => { res.status(400).send(err) });
-    });
-
-
-});
-
-
-
-
-
-// logout 
-
-app.delete('/users/logout', authenticate, (req, res) => {
-
-    req.user.removeToken(req.token).then(() => {
-        res.status(200).send();
-    }).catch((err) => {
-        res.status(400).send();
-    });
-
-
-});
-
-app.post('/api/google', (req, res) => {
-    var city = req.body.city
-    var country = req.body.country;
-    var postalCode = req.body.postalCode;
-    var encodedAddress = encodeURIComponent(city + ' ' + country + ' ' + postalCode);
-    console.log(encodedAddress)
-    var url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`;
-    axios.get(url).then((response) => {
-        if (response.data.status === 'ZERO_RESULTS') { throw new Error('Unable to find that address. ') }
-        res.status(200).send(response.data.results[0].formatted_address);
-
-    }).catch((err) => {
-        res.status(400).send(err.message);
-    })
-
-
-
-
-});
-
-
-
-
+app.delete('/users/logout', authenticate, user_routes.log_out);
 
 app.listen(port, () => {
     console.log(`started up at port :${port}`)
 });
+
+
+
+// another way of doing update user 
+
+// app.patch('/users/update-profile/', authenticate, (req, res) => {
+//     var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
+//     var body1 = {
+//         email: body.email,
+//         password: body.password,
+//         firstName: body.firstName,
+//         lastName: body.lastName,
+//         description: body.description,
+//         pointsEarned: body.pointsEarned,
+//         pointsDonated: body.pointsDonated,
+//         currentCause: body.currentCause,
+//         address: {
+//             city: body.city,
+//             country: body.country,
+//             province: body.province,
+//             address: body.address
+//         },
+//         age: body.age
+//     }
+
+
+//     email = req.user.email;
+//     User.findOneAndUpdate({ email }, { $set: body1 }, { new: true }).then((user) => {
+
+//         res.status(200).send(user);
+
+
+//     }).catch((err) => { res.status(400).send(err) });
+
+
+// });
+
+
+// logout 
+
+
+
+// app.post('/api/google', (req, res) => {
+//     var city = req.body.city
+//     var country = req.body.country;
+//     var postalCode = req.body.postalCode;
+//     var encodedAddress = encodeURIComponent(city + ' ' + country + ' ' + postalCode);
+//     console.log(encodedAddress)
+//     var url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`;
+//     axios.get(url).then((response) => {
+//         if (response.data.status === 'ZERO_RESULTS') { throw new Error('Unable to find that address. ') }
+//         res.status(200).send(response.data.results[0].formatted_address);
+
+//     }).catch((err) => {
+//         res.status(400).send(err.message);
+//     })
+
+
+
+
+// });
+
+
 
 
 

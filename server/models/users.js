@@ -43,13 +43,7 @@ var UserSchema = new mongoose.Schema({
         default: 1
     },
     pictures: {},
-    description: {
-        type: String,
-        required: false,
-        minlength: 5,
-        trim: true,
-        default: 'this is a description'
-    },
+    interestList: [{ type: String }],
     pointsEarned: {
         type: Number,
         minlength: 1,
@@ -127,7 +121,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', '_id', 'firstName', 'lastName', 'pictures', 'description', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
+    return _.pick(userObject, ['email', 'firstName', 'lastName', 'interestList', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
 };
 
 
@@ -141,6 +135,7 @@ UserSchema.methods.generateAuthToken = function() {
     });
 
 };
+
 
 
 UserSchema.methods.removeToken = function(token) {
