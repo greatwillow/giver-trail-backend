@@ -6,12 +6,14 @@ const bcryptjs = require('bcryptjs');
 const { geocode } = require('../middleware/geocode');
 var UserSchema = new mongoose.Schema({
     //var User = mongoose.model('User', {
+
     email: {
         type: String,
         required: true,
         minlength: 5,
         trim: true,
         unique: true,
+        validate: [{ validator: value => isEmail(value), msg: 'Invalid email.' }],
         validate: {
             validator: validator.isEmail,
             message: '{VALUE} is not a correct email'
@@ -44,17 +46,6 @@ var UserSchema = new mongoose.Schema({
     },
     pictures: {},
     interestList: [{ type: String }],
-    pointsEarned: {
-        type: Number,
-        minlength: 1,
-        default: 0
-
-    },
-    pointsDonated: {
-        type: Number,
-        minlength: 1,
-        default: 0
-    },
     currentCause: {
         type: String,
         required: false,
@@ -62,19 +53,10 @@ var UserSchema = new mongoose.Schema({
         trim: true,
         default: "none"
     },
-    currentTrail: {
-
-        trail: {
-            lat: {
-
-            },
-            lon: {
-
-            }
-        },
-
+    trail: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'trails',
         required: false,
-
     },
     address: {
         city: {
@@ -93,13 +75,13 @@ var UserSchema = new mongoose.Schema({
             name: String,
             type: String,
             required: false,
-            default: ' '
+            default: 'QC'
         },
         address: {
             name: String,
             type: String,
             required: false,
-            default: ' '
+            default: 'Montreal , QC,Canada'
         }
     },
     tokens: [{
@@ -111,7 +93,11 @@ var UserSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    trips: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'trips'
+    }
 
 
 
@@ -121,7 +107,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['email', 'firstName', 'lastName', 'interestList', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
+    return _.pick(userObject, ['email', 'firstName', 'lastName', 'interestList', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
 };
 
 

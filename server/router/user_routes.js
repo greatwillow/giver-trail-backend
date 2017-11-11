@@ -16,15 +16,14 @@ app.use(bodyParser.json());
 
 var create_user = (req, res) => {
     console.log('inside the function');
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'interestList', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'interestList', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
     var body1 = {
         email: body.email,
         password: body.password,
         firstName: body.firstName,
         lastName: body.lastName,
         interestList: body.interestList,
-        pointsEarned: body.pointsEarned,
-        pointsDonated: body.pointsDonated,
+
         currentCause: body.currentCause,
         address: {
             city: body.city,
@@ -65,15 +64,13 @@ var display_users = (req, res) => {
 
 
 var update_user = (req, res) => {
-    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'interestList', 'pointsEarned', 'pointsDonated', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
+    var body = _.pick(req.body, ['email', 'password', 'firstName', 'lastName', 'interestList', 'currentCause', 'address', 'city', 'country', 'province', 'age']);
     var body1 = {
         email: body.email,
         password: body.password,
         firstName: body.firstName,
         lastName: body.lastName,
         interestList: body.interestList,
-        pointsEarned: body.pointsEarned,
-        pointsDonated: body.pointsDonated,
         currentCause: body.currentCause,
         address: {
             city: body.city,
@@ -92,8 +89,6 @@ var update_user = (req, res) => {
         user.interestList = body1.interestList || user.interestList;
         user.firstName = body1.firstName || user.firstName;
         user.lastName = body1.lastName || user.lastName;
-        user.pointsEarned = body1.pointsEarned || user.pointsEarned;
-        user.pointsDonated = body1.pointsDonated || user.pointsDonated;
         user.currentCause = body1.currentCause || user.currentCause;
         user.address.city = body1.address.city || user.address.city;
         user.address.country = body1.address.country || user.address.country;
