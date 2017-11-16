@@ -137,6 +137,88 @@ let getTrails = (req, res) => {
 
 };
 
+
+
+let getCenterCoordinates = (req, res) => {
+    const url = 'http://overpass-api.de/api/interpreter?data=[out:json];way["highway"="footway"](50.745,7.17,50.75,7.18);out center;';
+
+    console.log('inside get trails')
+
+
+    axios.get(url).then((data) => {
+
+        let r = {
+
+            element: data.data.elements.map((e) => {
+
+
+                return { thename: e }
+            })
+
+        }
+
+
+
+        r.element.filter((e) => {
+            let CenterBody = _.pick(e.thename, ['id', 'center']);
+
+
+
+
+            Trails1.findOne({ id: CenterBody.id }).then((thetrail) => {
+                thetrail.center = CenterBody.center;
+                console.log('before save ')
+
+                thetrail.save().then((dataSaved) => {
+
+                }).catch((err) => { res.status(401).send(err) });
+
+            });
+
+
+
+
+
+
+
+
+
+        });
+
+    });
+
+    res.status(200).send();
+
+};
+
+let sendTrails = (req, res) => {
+    Trails1.find().then((trails) => {
+        let theTrail = trails.map((trail, index) => {
+
+            let obj = trail.geometry.lat.map((geo, index) => {
+                let obj1 = {
+                    id: trail.id,
+                    type: trail.type,
+                    center: trail.center,
+                    geo: {
+                        lat: trail.geometry.lat[index],
+                        lng: trail.geometry.lon[index],
+                        elevation: trail.geometry.elevation[index],
+                    }
+                }
+                return { obj1 }
+            })
+
+
+            return { obj }
+        })
+
+        console.log(theTrail);
+        res.status(200).send(theTrail)
+    });
+}
+
+
 let showTrails = (req, res) => {
     let allTrails = [];
     let count = 0;
@@ -176,5 +258,7 @@ let getElevationAll = (req, res) => {
 module.exports = {
     getTrails,
     showTrails,
-    getElevationAll
+    getElevationAll,
+    getCenterCoordinates,
+    sendTrails
 }

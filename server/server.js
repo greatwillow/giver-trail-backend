@@ -107,13 +107,15 @@ app.post('/users-points-trail-trip', (req, res) => {
 
 //=============== Trails routes =======================
 app.get('/getTrails', geometry_routes.getTrails);
+
+app.get('/getcenterCoordinates', geometry_routes.getCenterCoordinates);
 // display all trails we have 
 app.get('/showtrails', geometry_routes.showTrails);
 
 // dont run this 
 app.get('/getElevationAll', geometry_routes.getElevationAll);
 
-
+app.get('/sendTrails', geometry_routes.sendTrails);
 
 // app.get('/getPoint', (req, res) => {
 //     var obj = {

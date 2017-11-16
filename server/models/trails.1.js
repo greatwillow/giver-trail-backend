@@ -25,6 +25,9 @@ var trailsSchema = new mongoose.Schema({
     tags: {
 
     },
+    center: {
+
+    },
     bounds: {
         minlon: {
             type: String
@@ -65,7 +68,7 @@ var trailsSchema = new mongoose.Schema({
 trailsSchema.methods.toJSON = function() {
     var trail1 = this;
     var trailObject = trail1.toObject();
-    return _.pick(trailObject, ['type', 'id', 'tags', 'geometry', 'minlat', 'maxlat', 'minlon', 'maxlon', 'elevation', 'lat', 'lon', 'nodes', 'bounds', 'elevation']);
+    return _.pick(trailObject, ['center', 'type', 'id', 'tags', 'geometry', 'minlat', 'maxlat', 'minlon', 'maxlon', 'elevation', 'lat', 'lon', 'nodes', 'bounds', 'elevation']);
 };
 
 trailsSchema.statics.findByName = function(name) {
