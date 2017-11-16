@@ -201,18 +201,18 @@ let sendTrails = (req, res) => {
                 center: trail.center
             }
             let geometry = trail.geometry.lat.map((geo, index) => {
-                let theGeo = {
+                let coordinates = {
                     lat: geo,
                     lng: trail.geometry.lon[index],
                     elevation: trail.geometry.elevation[index],
                 }
-                return { theGeo }
+                return { coordinates }
             })
             let Trail = {
                 id: data.id,
                 type: data.type,
                 center: data.center,
-                coordinates: geometry
+                geometry: geometry
             }
 
             return { Trail }
