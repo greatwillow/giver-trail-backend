@@ -195,22 +195,27 @@ let sendTrails = (req, res) => {
     Trails1.find().then((trails) => {
         let theTrail = trails.map((trail, index) => {
 
-            let obj = trail.geometry.lat.map((geo, index) => {
-                let obj1 = {
-                    id: trail.id,
-                    type: trail.type,
-                    center: trail.center,
-                    geo: {
-                        lat: trail.geometry.lat[index],
-                        lng: trail.geometry.lon[index],
-                        elevation: trail.geometry.elevation[index],
-                    }
+            let data = {
+                id: trail.id,
+                type: trail.type,
+                center: trail.center
+            }
+            let geometry = trail.geometry.lat.map((geo, index) => {
+                let theGeo = {
+                    lat: geo,
+                    lng: trail.geometry.lon[index],
+                    elevation: trail.geometry.elevation[index],
                 }
-                return { obj1 }
+                return { theGeo }
             })
+            let Trail = {
+                id: data.id,
+                type: data.type,
+                center: data.center,
+                coordinates: geometry
+            }
 
-
-            return { obj }
+            return { Trail }
         })
 
         console.log(theTrail);
