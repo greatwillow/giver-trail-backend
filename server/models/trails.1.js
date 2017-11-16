@@ -46,10 +46,17 @@ var trailsSchema = new mongoose.Schema({
         }],
         lon: [{
             type: String
+        }],
+        elevation: [{
+
         }]
+
     },
     nodes: [{
         type: String
+    }],
+    elevation: [{
+
     }]
 
 });
@@ -58,7 +65,7 @@ var trailsSchema = new mongoose.Schema({
 trailsSchema.methods.toJSON = function() {
     var trail1 = this;
     var trailObject = trail1.toObject();
-    return _.pick(trailObject, ['type', 'id', 'tags', 'geometry', 'minlat', 'maxlat', 'minlon', 'maxlon', 'lat', 'lon', 'nodes', 'bounds']);
+    return _.pick(trailObject, ['type', 'id', 'tags', 'geometry', 'minlat', 'maxlat', 'minlon', 'maxlon', 'elevation', 'lat', 'lon', 'nodes', 'bounds', 'elevation']);
 };
 
 trailsSchema.statics.findByName = function(name) {
