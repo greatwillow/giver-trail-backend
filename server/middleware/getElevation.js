@@ -31,9 +31,9 @@ getElevation = (modifiedResults, cb) => {
             console.log(err);
         }
 
-        let obj = JSON.parse(result);
+        // let obj = JSON.parse(result);
         //console.log('elevation object ', obj)
-        cb(obj);
+        cb(result);
 
         //  console.log('elevation data in database : ', dbelev);
 

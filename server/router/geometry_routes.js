@@ -14,14 +14,15 @@ app.use(bodyParser.json());
 
 let getTrails = (req, res) => {
     const url = 'http://overpass-api.de/api/interpreter?data=[out:json];way["highway"="footway"](50.745,7.17,50.75,7.18);out geom;';
+    const url2 = 'http://overpass-api.de/api/interpreter?data=[out:json];way["highway"="footway"](45.970,-74.25,46.040,-74.1);out geom;';
     console.log('inside get trails')
 
 
-    axios.get(url).then((data) => {
+    axios.get(url2).then((data) => {
 
         let r = {
 
-                element: data.data.elements.map((e) => {
+                element: data.data.elements.map((e, index) => {
 
 
                     return { thename: e }
@@ -64,12 +65,7 @@ let getTrails = (req, res) => {
 
                 // console.log('bounds data ', newData.bounds);
 
-                let ele = newData.geometry.map((geo, index) => {
 
-                    return data.results[index].elevation
-                });
-                trail1.elevation = ele
-                trail1.geometry.elevation = ele
 
 
 
@@ -114,12 +110,19 @@ let getTrails = (req, res) => {
 
 
                 // console.log('the final result : ', TheFinalResult)
+                // let ele = newData.geometry.map((geo, index) => {
 
+                //     return data.results[index].elevation
+
+
+                // });
+                // trail1.elevation = ele
+                // trail1.geometry.elevation = ele
                 console.log('before save ')
 
                 trail1.save().then((dataSaved) => {
 
-                }).catch((err) => { res.status(401).send(err) });
+                }).catch((err) => { res.status(400).send(err) });
 
 
 
